@@ -5,12 +5,17 @@ services:
     image: postgres
     ports:
       - "5432:5432"
+    networks:
+      - evalai
 
-  sqs:
-    image: pakohan/elasticmq
-    hostname: sqs
+  rabbitmq:
+    image: rabbitmq
+    hostname: rabbitmq
     ports:
-      - 9324:9324
+      - "5672:5672"
+      - "15672:15672"  # here, we can access rabbitmq management plugin
+    networks:
+      - evalai
 
   django:
     container_name: django
@@ -24,8 +29,11 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - rabbitmq
     volumes:
       - .:/code
+    networks:
+      - evalai
 
   worker:
     env_file:
@@ -34,10 +42,12 @@ services:
       context: ./
       dockerfile: docker/dev/worker/Dockerfile
     depends_on:
-      - sqs
+      - rabbitmq
       - django
     volumes:
       - .:/code
+    networks:
+      - evalai
 
   nodejs:
     container_name: nodejs
@@ -53,3 +63,8 @@ services:
       - .:/code
       - /code/node_modules
       - /code/bower_components
+    networks:
+      - evalai
+
+networks:
+  evalai:

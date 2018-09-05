@@ -345,11 +345,11 @@ class GetSubmissionCountForChallengeTest(BaseAPITestClass):
         self.assertEqual(response.data, expected)
 
 
-class ChallengePhaseSubmissionCountByTeamTest(BaseAPITestClass):
+class ChallengePhaseSubmissionAnalysisTest(BaseAPITestClass):
 
     def setUp(self):
-        super(ChallengePhaseSubmissionCountByTeamTest, self).setUp()
-        self.url = reverse_lazy('analytics:get_challenge_phase_submission_count_by_team',
+        super(ChallengePhaseSubmissionAnalysisTest, self).setUp()
+        self.url = reverse_lazy('analytics:get_challenge_phase_submission_analysis',
                                 kwargs={'challenge_pk': self.challenge.pk,
                                         'challenge_phase_pk': self.challenge_phase.pk})
 
@@ -405,164 +405,6 @@ class ChallengePhaseSubmissionCountByTeamTest(BaseAPITestClass):
             is_public=True,
         )
 
-    def test_get_challenge_phase_submission_count_by_team_when_challenge_does_not_exist(self):
-        self.url = reverse_lazy('analytics:get_challenge_phase_submission_count_by_team',
-                                kwargs={'challenge_pk': self.challenge.pk+10,
-                                        'challenge_phase_pk': self.challenge_phase.pk})
-
-        expected = {
-            "detail": "Challenge {} does not exist".format(self.challenge.pk+10)
-        }
-        response = self.client.get(self.url, {})
-        self.assertEqual(response.data, expected)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_get_challenge_phase_submission_count_by_team_when_challenge_phase_does_not_exist(self):
-        self.url = reverse_lazy('analytics:get_challenge_phase_submission_count_by_team',
-                                kwargs={'challenge_pk': self.challenge.pk,
-                                        'challenge_phase_pk': self.challenge_phase.pk+10})
-
-        expected = {
-            "detail": "ChallengePhase {} does not exist".format(self.challenge_phase.pk+10)
-        }
-        response = self.client.get(self.url, {})
-        self.assertEqual(response.data, expected)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_get_challenge_phase_submission_count_by_team_for_participant_team_1(self):
-        self.challenge.participant_teams.add(self.participant_team)
-        self.challenge.participant_teams.add(self.participant_team3)
-
-        self.url = reverse_lazy('analytics:get_challenge_phase_submission_count_by_team',
-                                kwargs={'challenge_pk': self.challenge.pk,
-                                        'challenge_phase_pk': self.challenge_phase.pk})
-
-        expected = {
-                "participant_team_submission_count": self.participant_team.submissions.count(),
-                "challenge_phase": self.challenge_phase.pk
-            }
-        self.client.force_authenticate(user=self.user2)
-        response = self.client.get(self.url, {})
-        self.assertEqual(response.data, expected)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_get_challenge_phase_submission_count_by_team_for_participant_team_3(self):
-        self.challenge.participant_teams.add(self.participant_team)
-        self.challenge.participant_teams.add(self.participant_team3)
-
-        self.url = reverse_lazy('analytics:get_challenge_phase_submission_count_by_team',
-                                kwargs={'challenge_pk': self.challenge.pk,
-                                        'challenge_phase_pk': self.challenge_phase.pk})
-
-        expected = {
-                "participant_team_submission_count": self.participant_team3.submissions.count(),
-                "challenge_phase": self.challenge_phase.pk
-            }
-        self.client.force_authenticate(user=self.user3)
-        response = self.client.get(self.url, {})
-        self.assertEqual(response.data, expected)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-
-class ChallengePhaseSubmissionAnalyticsTest(BaseAPITestClass):
-
-    def setUp(self):
-        super(ChallengePhaseSubmissionAnalyticsTest, self).setUp()
-        self.url = reverse_lazy('analytics:get_challenge_phase_submission_analysis',
-                                kwargs={'challenge_pk': self.challenge.pk,
-                                        'challenge_phase_pk': self.challenge_phase.pk})
-
-        self.submission1 = Submission.objects.create(
-            participant_team=self.participant_team,
-            challenge_phase=self.challenge_phase,
-            created_by=self.participant_team.created_by,
-            status='submitted',
-            input_file=self.challenge_phase.test_annotation,
-            method_name="Test Method",
-            method_description="Test Description",
-            project_url="http://testserver/",
-            publication_url="http://testserver/",
-            is_public=True,
-        )
-
-        self.submission2 = Submission.objects.create(
-            participant_team=self.participant_team,
-            challenge_phase=self.challenge_phase,
-            created_by=self.participant_team.created_by,
-            status='running',
-            input_file=self.challenge_phase.test_annotation,
-            method_name="Test Method",
-            method_description="Test Description",
-            project_url="http://testserver/",
-            publication_url="http://testserver/",
-            is_public=True,
-        )
-
-        self.submission3 = Submission.objects.create(
-            participant_team=self.participant_team3,
-            challenge_phase=self.challenge_phase,
-            created_by=self.participant_team3.created_by,
-            status='failed',
-            input_file=self.challenge_phase.test_annotation,
-            method_name="Test Method",
-            method_description="Test Description",
-            project_url="http://testserver/",
-            publication_url="http://testserver/",
-            is_public=True,
-        )
-
-        self.submission4 = Submission.objects.create(
-            participant_team=self.participant_team,
-            challenge_phase=self.challenge_phase,
-            created_by=self.participant_team.created_by,
-            status='cancelled',
-            input_file=self.challenge_phase.test_annotation,
-            method_name="Test Method",
-            method_description="Test Description",
-            project_url="http://testserver/",
-            publication_url="http://testserver/",
-            is_public=True,
-        )
-
-        self.submission5 = Submission.objects.create(
-            participant_team=self.participant_team,
-            challenge_phase=self.challenge_phase,
-            created_by=self.participant_team.created_by,
-            status='finished',
-            input_file=self.challenge_phase.test_annotation,
-            method_name="Test Method",
-            method_description="Test Description",
-            project_url="http://testserver/",
-            publication_url="http://testserver/",
-            is_public=True,
-        )
-
-        self.submission6 = Submission.objects.create(
-            participant_team=self.participant_team,
-            challenge_phase=self.challenge_phase,
-            created_by=self.participant_team.created_by,
-            status='finished',
-            input_file=self.challenge_phase.test_annotation,
-            method_name="Test Method",
-            method_description="Test Description",
-            project_url="http://testserver/",
-            publication_url="http://testserver/",
-            is_public=True,
-        )
-
-        self.submission7 = Submission.objects.create(
-            participant_team=self.participant_team,
-            challenge_phase=self.challenge_phase,
-            created_by=self.participant_team.created_by,
-            status='submitting',
-            input_file=self.challenge_phase.test_annotation,
-            method_name="Test Method",
-            method_description="Test Description",
-            project_url="http://testserver/",
-            publication_url="http://testserver/",
-            is_public=True,
-        )
-
     def test_get_challenge_phase_submission_analysis_when_challenge_does_not_exist(self):
         self.url = reverse_lazy('analytics:get_challenge_phase_submission_analysis',
                                 kwargs={'challenge_pk': self.challenge.pk+10,
@@ -587,24 +429,38 @@ class ChallengePhaseSubmissionAnalyticsTest(BaseAPITestClass):
         self.assertEqual(response.data, expected)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_get_challenge_phase_submission_analysis(self):
+    def test_get_challenge_phase_submission_analysis_for_participant_team_1(self):
+        self.challenge.participant_teams.add(self.participant_team)
+        self.challenge.participant_teams.add(self.participant_team3)
+
         self.url = reverse_lazy('analytics:get_challenge_phase_submission_analysis',
                                 kwargs={'challenge_pk': self.challenge.pk,
                                         'challenge_phase_pk': self.challenge_phase.pk})
-        setattr(self.submission1, 'is_flagged', True)
-        setattr(self.submission1, 'is_public', True)
-        self.submission1.save()
-
-        submissions = Submission.objects.filter(challenge_phase=self.challenge_phase,
-                                                challenge_phase__challenge=self.challenge)
 
         expected = {
-                "total_submissions": submissions.count(),
-                "participant_team_count":  submissions.values('participant_team').distinct().count(),
-                "flagged_submissions_count": submissions.filter(is_flagged=True).count(),
-                "public_submissions_count": submissions.filter(is_public=True).count(),
+                "submission_count": 3,
+                "participant_team_count": 2,
                 "challenge_phase": self.challenge_phase.pk
             }
+        self.client.force_authenticate(user=self.user2)
+        response = self.client.get(self.url, {})
+        self.assertEqual(response.data, expected)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_challenge_phase_submission_analysis_for_participant_team_3(self):
+        self.challenge.participant_teams.add(self.participant_team)
+        self.challenge.participant_teams.add(self.participant_team3)
+
+        self.url = reverse_lazy('analytics:get_challenge_phase_submission_analysis',
+                                kwargs={'challenge_pk': self.challenge.pk,
+                                        'challenge_phase_pk': self.challenge_phase.pk})
+
+        expected = {
+                "submission_count": 1,
+                "participant_team_count": 2,
+                "challenge_phase": self.challenge_phase.pk
+            }
+        self.client.force_authenticate(user=self.user3)
         response = self.client.get(self.url, {})
         self.assertEqual(response.data, expected)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

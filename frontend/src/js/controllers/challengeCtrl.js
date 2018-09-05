@@ -553,7 +553,7 @@
             parameters.callback = {
                 onSuccess: function(response) {
                     var details = response.data;
-                    vm.submissionCount = details.participant_team_submission_count;
+                    vm.submissionCount = details.submission_count;
                 },
                 onError: function(response) {
                     var error = response.data;
@@ -808,15 +808,14 @@
             parameters.url = 'participants/participant_team';
             parameters.method = 'POST';
             parameters.data = {
-                "team_name": vm.team.name,
-                "team_url": vm.team.url
+                "team_name": vm.team.name
             };
             parameters.callback = {
                 onSuccess: function() {
                     $rootScope.notify("success", "Team " + vm.team.name + " has been created successfully!");
                     vm.team.error = false;
                     vm.stopLoader();
-                    vm.team = {};
+                    vm.team.name = '';
 
                     vm.startLoader("Loading Teams");
                     parameters.url = 'participants/participant_team';
